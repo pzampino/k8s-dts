@@ -1,0 +1,15 @@
+{
+  "provider-config-ref": "ldap",
+  "services": [
+    {
+      "name": "DELEGATIONTOKENS",
+      "params": {
+        "knox.dt.authorize.pod": "false",
+        "knox.dt.jaas.conf": "/etc/k8s-dts/jaas.conf",
+        "knox.dt.k8s.url": "https://k8s-api-host:k8s-api-port",
+        "knox.dt.k8s.creds": "/etc/k8s-dts/k8s-token.txt",
+        "knox.dt.namenode.address": "http://nn-host:20101"
+      }
+    }
+  ]
+}

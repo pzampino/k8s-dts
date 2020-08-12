@@ -1,0 +1,56 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: ic-dt-test-job
+  labels:
+    app: ic-dt-test
+spec:
+  template:
+    metadata:
+     # Pod-level annotations
+     annotations:
+       knox-host: "KNOX_HOST"
+       nn-address: "http://NAMENODE_HOST:20101"
+       user: systest
+    spec:
+      containers:
+      # The application container that needs HDFS access
+      - name: container-1
+        image: tutum/curl
+        command: ['sh', '-c', 'printf "The job is running!\n\n" ; printf "Try accessing HDFS WITHOUT a delegation token...\n\n" ; curl -i "$NN_ADDR/webhdfs/v1/tmp/?op=LISTSTATUS"; printf "\nNow, WITH the delegation token...\n\n"; export DT=$(cat /work-dir/dt.txt); printf "Delegation Token: $DT\n\n"; curl -i "$NN_ADDR/webhdfs/v1/tmp/?op=LISTSTATUS&delegation=${DT}" ; sleep 3600']
+        volumeMounts:
+        - name: workdir
+          mountPath: "/work-dir"
+      # The init container that gets delegation tokens from Knox
+      initContainers:
+      - name: dt-init-container
+        image: tutum/curl
+        command: ['sh', '-c', 'printf "Pod $NAMESPACE/$POD_NAME is attempting to acquire a HDFS delegation token for $OWNER\n\n" ; printf "KNOX_HOST=$KNOX_HOST\n\n"; curl -iku guest:guest-password "https://$KNOX_HOST:8443/gateway/dt-proxy/delegationtoken/api/v1/dt?pod=$POD_NAME&namespace=$NAMESPACE" --output /work-dir/response.txt; grep -o "\"delegation_token\": \"\([^,\"]*\)\"" /work-dir/response.txt | sed "s/\(\"delegation_token\": \"\(.*\)\"\)/\2/g" > /work-dir/dt.txt ; printf "\nAcquired delegation token:\n"  ; cat /work-dir/dt.txt']
+        env:
+        - name: NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: KNOX_HOST
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.annotations['knox-host']
+        - name: NN_ADDR
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.annotations['nn-address']
+        - name: OWNER
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.annotations['user']
+        volumeMounts:
+        - name: workdir
+          mountPath: "/work-dir"
+      volumes:
+      - name: workdir
+        emptyDir: {}
+      restartPolicy: Never
