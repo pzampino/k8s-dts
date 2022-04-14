@@ -7,14 +7,14 @@ Kerberos users can use the WEBHDFS API to get a Hadoop Delegation Token from the
 (e.g., kinit’d as systest)
 curl --negotiate -u: "http://HOST:20101/webhdfs/v1/?op=GETDELEGATIONTOKEN"
 
-`{
+```{
   "Token":
   {
     "urlString":"IgAHc3lzdGVzdAdzeXN0ZXN0AIoBcwV2oHyKAXMpgyR8HwQU3F03Ce4LNg45X9Vz_YV-n5Y9ZXoSV0VCSERGU
 yBkZWxlZ2F0aW9uEzE3Mi4zMS4xMTIuMTI5OjgwMjA"
   }
 }
-`
+```
 
 
 ## Knox [HD]FS Token Service
