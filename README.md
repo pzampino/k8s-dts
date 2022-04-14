@@ -4,7 +4,7 @@ Getting and using HDFS delegation tokens from Kubernetes job containers with Apa
 ## HDFS Delegation Tokens
 Kerberos users can use the WEBHDFS API to get a Hadoop Delegation Token from the NameNode service.
 
-(e.g., kinit’d as systest)
+(e.g., kinit’d as Kerberos user)
 curl --negotiate -u: "http://HOST:20101/webhdfs/v1/?op=GETDELEGATIONTOKEN"
 
 ```
